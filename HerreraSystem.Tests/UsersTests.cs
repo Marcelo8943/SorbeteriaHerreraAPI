@@ -1,4 +1,4 @@
-﻿using HerreraSystem.Application.DTOs.UserDto;
+using HerreraSystem.Application.DTOs.UserDto;
 using HerreraSystem.Application.Services;
 using HerreraSystem.Infrastructure.Data;
 using HerreraSystem.Infrastructure.Repositories;
@@ -20,7 +20,7 @@ namespace HerreraSystem.Tests
         [SetUp]
         public void SetUp()
         {
-            var connectionString = "Server=DESKTOP-VSK4022\\SQLEXPRESS01;" +
+            var connectionString = "Server=.;" +
                                    "Database=HerreraSystem;" +
                                    "Trusted_Connection=True;" +
                                    "TrustServerCertificate=True;";
@@ -41,7 +41,7 @@ namespace HerreraSystem.Tests
                 FirstName = "Romina",
                 LastName = "Herrera",
                 Password = "Test123*",
-                RoleName = "Administrador"
+                RoleName = "Admin"
             };
 
             _nuevoUser = new CreateUserDto
@@ -52,24 +52,34 @@ namespace HerreraSystem.Tests
                 FirstName = "Prueba",
                 LastName = "Prueba",
                 Password = "Test123*",
-                RoleName = "Administrador"
+                RoleName = "Admin"
             };
+            var existingUser = _context.Users.FirstOrDefault(u => u.UserName == _createUser.UserName);
+            if (existingUser == null)
+            {
+                _service.CreateAsync(_createUser).GetAwaiter().GetResult();
+            }
         }
 
         [TearDown]
         public async Task TearDown()
         {
-            var usuario = await _context.Users
+            var testUserNames = new[] { _nuevoUser.UserName, "otro_username", _createUser.UserName };
+            var usuarios = await _context.Users
                 .Include(u => u.UserRoles)
-                .FirstOrDefaultAsync(u => u.UserName == _nuevoUser.UserName);
+                .Where(u => testUserNames.Contains(u.UserName))
+                .ToListAsync();
 
-            if (usuario != null)
+            if (usuarios.Any())
             {
-                if (usuario.UserRoles.Any())
+                foreach (var usuario in usuarios)
                 {
-                    _context.UserRoles.RemoveRange(usuario.UserRoles);
+                    if (usuario.UserRoles.Any())
+                    {
+                        _context.UserRoles.RemoveRange(usuario.UserRoles);
+                    }
+                    _context.Users.Remove(usuario);
                 }
-                _context.Users.Remove(usuario);
                 await _context.SaveChangesAsync();
             }
 
@@ -105,7 +115,7 @@ namespace HerreraSystem.Tests
                 FirstName = "Otro",
                 LastName = "Usuario",
                 Password = "Test123*",
-                RoleName = "Administrador"
+                RoleName = "Admin"
             };
 
             var resultado = await _service.CreateAsync(usuarioDuplicado);
@@ -125,7 +135,7 @@ namespace HerreraSystem.Tests
                 FirstName = "Otro",
                 LastName = "Usuario",
                 Password = "Test123*",
-                RoleName = "Administrador"
+                RoleName = "Admin"
             };
 
             var resultado = await _service.CreateAsync(usuarioDuplicado);
@@ -145,7 +155,7 @@ namespace HerreraSystem.Tests
                 FirstName = "Otro",
                 LastName = "Usuario",
                 Password = "Test123*",
-                RoleName = "Administrador"
+                RoleName = "Admin"
             };
 
             var resultado = await _service.CreateAsync(usuarioDuplicado);

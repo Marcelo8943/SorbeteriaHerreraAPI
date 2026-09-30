@@ -1,4 +1,4 @@
-﻿using HerreraSystem.Infrastructure.Data;
+using HerreraSystem.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore.Storage;
 using System;
 using System.Collections.Generic;
@@ -11,6 +11,7 @@ namespace HerreraSystem.Infrastructure.Persistence
     {
         private readonly HerreraSystemContext _context;
         private IDbContextTransaction? _transaction;
+        private int _transactionDepth = 0;
 
         public UnitOfWork(HerreraSystemContext context)
         {
@@ -19,23 +20,47 @@ namespace HerreraSystem.Infrastructure.Persistence
 
         public async Task BeginTransactionAsync()
         {
-            _transaction = await _context.Database.BeginTransactionAsync();
+            if (_transaction is null)
+            {
+                _transaction = await _context.Database.BeginTransactionAsync();
+            }
+            _transactionDepth++;
         }
 
         public async Task CommitAsync()
         {
-            await _transaction!.CommitAsync();
+            if (_transactionDepth <= 0)
+                return;
+
+            _transactionDepth--;
+
+            if (_transactionDepth == 0 && _transaction is not null)
+            {
+                await _transaction.CommitAsync();
+                await _transaction.DisposeAsync();
+                _transaction = null;
+            }
         }
 
         public async Task RollbackAsync()
         {
-            await _transaction!.RollbackAsync();
+            if (_transaction is not null)
+            {
+                await _transaction.RollbackAsync();
+                await _transaction.DisposeAsync();
+                _transaction = null;
+            }
+            _transactionDepth = 0;
         }
 
         public async ValueTask DisposeAsync()
         {
             if (_transaction is not null)
+            {
                 await _transaction.DisposeAsync();
+                _transaction = null;
+            }
+            _transactionDepth = 0;
         }
 
         public async Task SaveChangesAsync()

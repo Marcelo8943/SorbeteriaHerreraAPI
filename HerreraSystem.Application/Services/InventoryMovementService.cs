@@ -1,4 +1,4 @@
-﻿using HerreraSystem.Application.Common;
+using HerreraSystem.Application.Common;
 using HerreraSystem.Application.DTOs.InventoryMovementDtos;
 using HerreraSystem.Application.Interfaces.Repositories;
 using HerreraSystem.Application.Interfaces.Services;
@@ -77,6 +77,7 @@ namespace HerreraSystem.Application.Services
                         MovementDate = now,
                         Notes = dto.Notes,
                         CreatedBy = dto.CreatedBy,
+                        OrderId = dto.OrderId,
                         IsActive = true
                     });
 

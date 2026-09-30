@@ -30,9 +30,27 @@ namespace HerreraSystem.Infrastructure.Repositories
 
         public async Task<int> CountByYearAsync(int year)
         {
-            return await _context.Restocks
+            var prefix = $"RST-{year}-";
+            var codes = await _context.Restocks
+                .Where(r => r.RestockCode.StartsWith(prefix))
+                .Select(r => r.RestockCode)
+                .ToListAsync();
+
+            int maxCorrelative = 0;
+            foreach (var code in codes)
+            {
+                var parts = code.Split('-');
+                if (parts.Length == 3 && int.TryParse(parts[2], out int num))
+                {
+                    if (num > maxCorrelative) maxCorrelative = num;
+                }
+            }
+
+            int count = await _context.Restocks
                 .Where(r => r.RestockDate.HasValue && r.RestockDate.Value.Year == year)
                 .CountAsync();
+
+            return Math.Max(count, maxCorrelative);
         }
 
         public async Task<PagedResponse<RestockListItemDto>> GetAllAsync(RestockQueryParams queryParams)
