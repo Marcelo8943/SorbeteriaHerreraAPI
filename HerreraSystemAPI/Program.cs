@@ -151,16 +151,15 @@ var webRootPath = app.Environment.WebRootPath
 Directory.CreateDirectory(Path.Combine(webRootPath, "uploads", "products"));
 Directory.CreateDirectory(Path.Combine(webRootPath, "uploads", "flavors"));
 
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+// Expose API documentation in Azure as well as local development.
+app.UseSwagger();
+app.UseSwaggerUI();
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseCors("PermitirFrontend");
 app.UseAuthentication();
 app.UseAuthorization();
+app.MapGet("/", () => Results.Redirect("/swagger")).ExcludeFromDescription();
 app.MapControllers();
 app.Run();
