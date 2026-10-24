@@ -1,3 +1,4 @@
+
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 
@@ -16,7 +17,7 @@ public class SystemLog
     public DateTime Timestamp { get; set; } = DateTime.UtcNow;
 
     [BsonElement("level")]
-    public string Level { get; set; } = "Information"; // Information, Warning, Error
+    public string Level { get; set; } = "Information";
 
     [BsonElement("environment")]
     public string Environment { get; set; } = "Development";
@@ -26,6 +27,18 @@ public class SystemLog
 
     [BsonElement("userId")]
     public string? UserId { get; set; }
+
+    [BsonElement("userName")]
+    [BsonIgnoreIfNull]
+    public string? UserName { get; set; }
+
+    [BsonElement("rol")]
+    [BsonIgnoreIfNull]
+    public string? Rol { get; set; }
+
+    [BsonElement("device")]
+    [BsonIgnoreIfNull]
+    public string? Device { get; set; }
 
     [BsonElement("request")]
     public RequestDetail Request { get; set; } = new();
@@ -49,6 +62,11 @@ public class RequestDetail
 public class ResponseDetail
 {
     public int StatusCode { get; set; }
+
+    [BsonElement("Status")]
+    [BsonIgnoreIfNull]
+    public string? Status { get; set; }
+
     public long ElapsedMilliseconds { get; set; }
 }
 
