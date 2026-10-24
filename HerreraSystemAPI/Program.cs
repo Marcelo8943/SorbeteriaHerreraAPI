@@ -12,6 +12,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 using System.Text;
+using HerreraSystem.API.Configurations;
 
 var builder = WebApplication.CreateBuilder(args);
 var Jwt = builder.Configuration.GetSection("Jwt");
@@ -131,6 +132,11 @@ builder.Services.AddScoped<IDepartmentService, DepartmentService>();
 builder.Services.AddScoped<IMunicipalityRepository, MunicipalityRepository>();
 builder.Services.AddScoped<IMunicipalityService, MunicipalityService>();
 
+builder.Services.Configure<MongoLogSettings>(
+    builder.Configuration.GetSection("MongoLogSettings"));
+builder.Services.AddSingleton<ILogService, MongoLogService>();
+
+; 
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("PermitirFrontend", policy =>
@@ -148,8 +154,11 @@ app.UseMiddleware<ExceptionMiddleware>();
 var webRootPath = app.Environment.WebRootPath
                   ?? Path.Combine(app.Environment.ContentRootPath, "wwwroot");
 
+
 Directory.CreateDirectory(Path.Combine(webRootPath, "uploads", "products"));
 Directory.CreateDirectory(Path.Combine(webRootPath, "uploads", "flavors"));
+app.UseMiddleware<AuditLoggingMiddleware>();
+
 
 // Expose API documentation in Azure as well as local development.
 app.UseSwagger();
