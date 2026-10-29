@@ -54,5 +54,4 @@ jobs:
           app-name: 'cosmos-mongo-estudiante'
           slot-name: 'Production'
           package: ./publish
-          startup-command: dotnet HerreraSystem.API.dll
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_12095F3922C442CD8E3E31C03A466740 }}
